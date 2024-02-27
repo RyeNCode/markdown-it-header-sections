@@ -1,5 +1,16 @@
 
-module.exports = function headerSections(md) {
+module.exports = function headerSections(md, options) {
+  const defaults = {
+    explicitCloseEnabled: false,
+    explicitCloseOptions: {
+      closeOneMarkDown: '___',
+      closeAllMarkDown: '______',
+      addAnanMarkDown: '---',
+      splitSectionMarkDown: '***'
+    }
+  }
+
+  const opts = md.utils.assign({}, defaults, options || {});
 
   function addSections(state) {
     var tokens = [];  // output
@@ -68,52 +79,51 @@ module.exports = function headerSections(md) {
         }
         sections.push(section);
       }
-      else
+      else if (opts.explicitCloseEnabled)
       {
+        //token type must be hr
         if (token.type === 'hr') {
           const lastSection = last(sections);
-          switch(token.markup){
-            case '___': //3x_
-              //close current section
-              if (last(sections)) {
-                keepToken = false;
-                closeSections(section);
-              }
-              break;
-            case '______': //6x_
-              //close all sections
-              if (last(sections)) {
-                keepToken = false;
-                closeAllSections();
-              }
-              break;
-            case '---': //3x-
-              //anon section
+          if(token.markup === opts.explicitCloseOptions.closeOneMarkDown){
+            //close current section
+            if (last(sections)) {
               keepToken = false;
-              let lastHeader = 0;
-              if (lastSection){
-                lastHeader = lastSection.header;
-              }
+              closeSections(section);
+            }
+          }
+          else if (token.markup === opts.explicitCloseOptions.closeAllMarkDown) {
+            //close all sections
+            if (last(sections)) {
+              keepToken = false;
+              closeAllSections();
+            }
+          }
+          else if (token.markup === opts.explicitCloseOptions.addAnanMarkDown) {
+            //anon section
+            keepToken = false;
+            let lastHeader = 0;
+            if (lastSection){
+              lastHeader = lastSection.header;
+            }
+            var newSection = {
+              header: headingLevel(`h${lastHeader}`),
+              nesting: nestedLevel
+            };
+            tokens.push(openSection([]));
+            sections.push(newSection);
+          }
+          else if (token.markup === opts.explicitCloseOptions.splitSectionMarkDown) {
+            //split section
+            if (lastSection) {
+              keepToken = false;
+              closeSections(section);
               var newSection = {
-                header: headingLevel(`h${lastHeader}`),
+                header: headingLevel(`h${lastSection.header}`),
                 nesting: nestedLevel
               };
               tokens.push(openSection([]));
               sections.push(newSection);
-              break;
-            case '***': //3x*
-              //split section
-              if (lastSection) {
-                keepToken = false;
-                closeSections(section);
-                var newSection = {
-                  header: headingLevel(`h${lastSection.header}`),
-                  nesting: nestedLevel
-                };
-                tokens.push(openSection([]));
-                sections.push(newSection);
-              }
-              break;
+            }
           }
         }
       

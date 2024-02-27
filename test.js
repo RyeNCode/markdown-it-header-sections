@@ -202,4 +202,115 @@ describe('markdown-it-header-sections', function(){
     var res = md.render(src);
     assert.equal(res, expected);
   });
+
+
+  /* new section closing */
+  it('sectionClose: should not close section when not enabled', function(){
+    var src = multiline.stripIndent(function(){/*
+      # asdf {#asdf}
+
+      ---
+      qwerty
+    */});
+    var expected = multiline.stripIndent(function(){/*
+      <section id="asdf">
+      <h1>asdf</h1>
+      <hr>
+      <p>qwerty</p>
+      </section>
+
+    */});
+    md.use(require('markdown-it-attrs'));
+    md.use(headerSections);
+    var res = md.render(src);
+    assert.equal(res, expected);
+  });
+
+  it('sectionClose: should close section when enabled: close current', function(){
+    var src = multiline.stripIndent(function(){/*
+      # asdf {#asdf}
+
+      ___
+      qwerty
+    */});
+    var expected = multiline.stripIndent(function(){/*
+      <section id="asdf">
+      <h1>asdf</h1>
+      </section>
+      <p>qwerty</p>
+
+    */});
+    md.use(require('markdown-it-attrs'));
+    md.use(headerSections, {explicitCloseEnabled:true});
+    var res = md.render(src);
+    assert.equal(res, expected);
+  });
+
+  it('sectionClose: should close sections when enabled: close all', function(){
+    var src = multiline.stripIndent(function(){/*
+      # asdf {#asdf}
+      ## ghjk
+
+      ______
+      qwerty
+    */});
+    var expected = multiline.stripIndent(function(){/*
+      <section id="asdf">
+      <h1>asdf</h1>
+      <section>
+      <h2>ghjk</h2>
+      </section>
+      </section>
+      <p>qwerty</p>
+
+    */});
+    md.use(require('markdown-it-attrs'));
+    md.use(headerSections, {explicitCloseEnabled:true});
+    var res = md.render(src);
+    assert.equal(res, expected);
+  });
+
+  it('sectionClose: should split section when enabled', function(){
+    var src = multiline.stripIndent(function(){/*
+      # asdf {#asdf}
+
+      ***
+      qwerty
+    */});
+    var expected = multiline.stripIndent(function(){/*
+      <section id="asdf">
+      <h1>asdf</h1>
+      </section>
+      <section>
+      <p>qwerty</p>
+      </section>
+
+    */});
+    md.use(require('markdown-it-attrs'));
+    md.use(headerSections, {explicitCloseEnabled:true});
+    var res = md.render(src);
+    assert.equal(res, expected);
+  });
+
+  it('sectionClose: should insert section when enabled', function(){
+    var src = multiline.stripIndent(function(){/*
+      # asdf {#asdf}
+
+      ---
+      qwerty
+    */});
+    var expected = multiline.stripIndent(function(){/*
+      <section id="asdf">
+      <h1>asdf</h1>
+      <section>
+      <p>qwerty</p>
+      </section>
+      </section>
+
+    */});
+    md.use(require('markdown-it-attrs'));
+    md.use(headerSections, {explicitCloseEnabled:true});
+    var res = md.render(src);
+    assert.equal(res, expected);
+  });
 });
