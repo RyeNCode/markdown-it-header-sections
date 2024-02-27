@@ -42,6 +42,7 @@ module.exports = function headerSections(md) {
 
     for (var i = 0, l = state.tokens.length; i < l; i++) {
       var token = state.tokens[i];
+      let keepToken = true;
 
       // record level of nesting
       if (token.type.search('heading') !== 0) {
@@ -67,8 +68,58 @@ module.exports = function headerSections(md) {
         }
         sections.push(section);
       }
-
-      tokens.push(token);
+      else
+      {
+        if (token.type === 'hr') {
+          const lastSection = last(sections);
+          switch(token.markup){
+            case '___': //3x_
+              //close current section
+              if (last(sections)) {
+                keepToken = false;
+                closeSections(section);
+              }
+              break;
+            case '______': //6x_
+              //close all sections
+              if (last(sections)) {
+                keepToken = false;
+                closeAllSections();
+              }
+              break;
+            case '---': //3x-
+              //anon section
+              keepToken = false;
+              let lastHeader = 0;
+              if (lastSection){
+                lastHeader = lastSection.header;
+              }
+              var newSection = {
+                header: headingLevel(`h${lastHeader}`),
+                nesting: nestedLevel
+              };
+              tokens.push(openSection([]));
+              sections.push(newSection);
+              break;
+            case '***': //3x*
+              //split section
+              if (lastSection) {
+                keepToken = false;
+                closeSections(section);
+                var newSection = {
+                  header: headingLevel(`h${lastSection.header}`),
+                  nesting: nestedLevel
+                };
+                tokens.push(openSection([]));
+                sections.push(newSection);
+              }
+              break;
+          }
+        }
+      
+      }
+      if (keepToken)
+        tokens.push(token);
     }  // end for every token
     closeAllSections();
 
