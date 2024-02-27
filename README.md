@@ -78,6 +78,37 @@ src += 'ipsum';
 console.log(md.render(src));
 ```
 
+## Explicit Section Close
+### Usage
+```js
+var md = require('markdown-it')();
+md.use(require('markdown-it-header-sections'),{
+  explicitCloseEnabled: true
+});
+
+var src = '# first header\n';
+src += 'lorem\n\n'
+src += '___\n\n'  //this will close the existing section
+src += '## second header\n';
+src += 'ipsum';
+
+console.log(md.render(src));
+
+```
+
+### Options
+| option                   | default    | effect                                     |
+|--------------------------|------------|--------------------------------------------|
+| `explicitCloseEnabled`   | ` false`   | controls if explictClose is enabled or not |
+| ` .closeOneMarkDown`     | `'___'`    | markdown trigger -> close current section  |
+| ` .closeAllMarkDown`     | `'______'` | markdown trigger -> close all sections     |
+| ` .addAnanMarkDown`      | `'---'`    | markdown trigger -> add anonymous section  |
+| ` .splitSectionMarkDown` | `'***'`    | markdown trigger -> split current section  |
+
+> [!NOTE]
+> * horizontal rule entries not within a section will still be rendered as `<hr>`
+> * horizontal rule entries that don't match exactly one of the triggers will still be rendered as `<hr>`
+
 [demo as jsfiddle](https://jsfiddle.net/arve0/5dn54cow/1/)
 
 
